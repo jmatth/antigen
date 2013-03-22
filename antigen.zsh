@@ -85,7 +85,7 @@ antigen-bundle () {
             $url != /* &&
             $url != git@github.com:*/*
             ]]; then
-        url="https://github.com/${url%.git}.git"
+        url="git://github.com/${url%.git}.git"
     fi
 
     echo "$url"
