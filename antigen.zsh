@@ -1,4 +1,8 @@
-#!/bin/zsh
+# Antigen: A simple plugin manager for zsh
+# Authors: Shrikant Sharat Kandula
+#          and Contributors <https://github.com/zsh-users/antigen/contributors>
+# Homepage: http://antigen.sharats.me
+# License: MIT License <mitl.sharats.me>
 
 # Each line in this string has the following entries separated by a space
 # character.
@@ -398,8 +402,18 @@ antigen-use () {
 }
 
 # For backwards compatibility.
-antigen-lib () { -antigen-use-oh-my-zsh }
-antigen-prezto-lib () { -antigen-use-prezto }
+antigen-lib () {
+    -antigen-use-oh-my-zsh
+    echo '`antigen-lib` is deprecated and will soon be removed.'
+    echo 'Use `antigen-use oh-my-zsh` instead.'
+}
+
+# For backwards compatibility.
+antigen-prezto-lib () {
+    -antigen-use-prezto
+    echo '`antigen-prezto-lib` is deprecated and will soon be removed.'
+    echo 'Use `antigen-use prezto` instead.'
+}
 
 antigen-theme () {
 
@@ -531,8 +545,17 @@ EOF
 # function, you can write `antigen-bundle` as `antigen bundle` and so on.
 antigen () {
     local cmd="$1"
+    if [[ -z "$cmd" ]]; then
+        echo 'Antigen: Please give a command to run.' >&2
+        return 1
+    fi
     shift
-    "antigen-$cmd" "$@"
+
+    if functions "antigen-$cmd" > /dev/null; then
+        "antigen-$cmd" "$@"
+    else
+        echo "Antigen: Unknown command: $cmd" >&2
+    fi
 }
 
 -antigen-parse-args () {
@@ -639,7 +662,8 @@ antigen () {
         fi
 
         # The specification for this argument, used for validations.
-        local arg_line="$(echo "$keyword_args" | egrep "^$name:?\??" | head -n1)"
+        local arg_line="$(echo "$keyword_args" |
+                            egrep "^$name:?\??" | head -n1)"
 
         # Validate argument and value.
         if [[ -z $arg_line ]]; then
@@ -647,12 +671,14 @@ antigen () {
             echo "Unknown argument '$name'." >&2
             return
 
-        elif (echo "$arg_line" | grep -l ':' &> /dev/null) && [[ -z $value ]]; then
+        elif (echo "$arg_line" | grep -l ':' &> /dev/null) &&
+                [[ -z $value ]]; then
             # This argument needs a value, but is not provided.
             echo "Required argument for '$name' not provided." >&2
             return
 
-        elif (echo "$arg_line" | grep -vl ':' &> /dev/null) && [[ ! -z $value ]]; then
+        elif (echo "$arg_line" | grep -vl ':' &> /dev/null) &&
+                [[ -n $value ]]; then
             # This argument doesn't need a value, but is provided.
             echo "No argument required for '$name', but provided '$value'." >&2
             return
